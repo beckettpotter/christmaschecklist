@@ -1,6 +1,11 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<style>[hidden]{display:none!important}body{margin:0}:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>Beckett's Christmas List</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Layout: one narrow column, rows grouped by what goes together, status shown on each row.
    Type: system sans for text, system mono for prices and labels (no font requests). */
@@ -78,6 +83,9 @@ footer p{margin:0 0 .4rem}
 .trow{display:flex;flex-wrap:wrap;gap:.5rem}
 #tnote{flex:1 1 14rem;min-width:0;font:inherit;font-size:.9rem;min-height:2.5rem;padding:0 .75rem;border:1px solid var(--line-strong);border-radius:.5rem;background:var(--bg);color:var(--ink)}
 </style>
+</head>
+<body>
+
 
 <main class="wrap">
   <header>
@@ -97,8 +105,8 @@ footer p{margin:0 0 .4rem}
   </header>
   <div id="list"></div>
   <footer>
-    <p>Marks are visible to everyone who opens this page. Product links go straight to the store.</p>
-    <p>This page loads no trackers, ads, analytics or outside fonts.</p>
+    <p>Marks are visible to everyone who opens this page and are saved on a small private Cloudflare service. Product links go straight to the store.</p>
+    <p>No trackers, ads, analytics or outside fonts.</p>
   </footer>
 </main>
 
@@ -201,7 +209,7 @@ footer p{margin:0 0 .4rem}
     $("#fp").style.width=((n-b)/ITEMS.length*100)+"%";
   }
   function setSync(msg){var s=$("#sync");if(msg){s.textContent=msg;s.hidden=false}else s.hidden=true}
-  var COPYMSG="Live marking isn't available in this view. The buttons copy a note you can send to Beckett.";
+  var COPYMSG="Live marking isn't set up yet. The buttons copy a note you can send to Beckett.";
 
   /* note sheet */
   function share(msg,note,copyNow){
@@ -226,48 +234,57 @@ footer p{margin:0 0 .4rem}
     if(!a||a===document.body||a.hidden){var b=[r.bought,r.plan,r.undo].filter(function(x){return !x.hidden})[0];if(b)b.focus()}
   },60)}
 
+  var API="PASTE_YOUR_WORKER_URL_HERE";
+  var live=/^https:\/\//.test(API);
+
+  async function call(opts){
+    var ctl=new AbortController(),t=setTimeout(function(){ctl.abort()},10000);
+    try{
+      var r=await fetch(API,Object.assign({signal:ctl.signal,cache:"no-store"},opts||{}));
+      if(!r.ok)throw new Error("http "+r.status);
+      return await r.json();
+    }finally{clearTimeout(t)}
+  }
+  function take(c){
+    Object.keys(claims).forEach(function(k){delete claims[k]});
+    Object.keys(c||{}).forEach(function(k){if(byId[k]&&c[k]&&typeof c[k]==="object")claims[k]=c[k]});
+    applyAll();
+    setSync("");
+  }
+  function send(id,state,name){
+    return call({method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({id:id,state:state,who:name})});
+  }
+  async function refresh(){
+    try{take(await call())}
+    catch(e){setSync("Couldn't load current marks. Try refreshing in a moment.")}
+  }
+
   async function act(item,state){
     var n=myName();
     var note="Christmas list update: "+(state==="bought"?"I bought":"I'm getting")+' "'+item.name+'".'+(n?" ("+n+")":"");
-    if(mode==="copy"||!db){share("Send this note to Beckett so he knows.",note,true);return}
+    if(!live){share("Send this note to Beckett so he knows.",note,true);return}
     try{
-      await db.doc("claims/"+item.id).set({state:state,who:n,at:new Date().toISOString()});
+      take(await send(item.id,state,n));
       share("Saved. Beckett can see it on this page. A quick note to him helps too.",note,false);
       refocus(item.id);
     }catch(e){
-      mode="copy";applyAll();setSync(COPYMSG);
-      share("Live marking is off for this view. Send this note to Beckett so he knows.",note,true);
+      setSync("Couldn't save that just now.");
+      share("Couldn't save the mark. Send this note to Beckett so he knows.",note,true);
     }
   }
   async function unmark(item){
-    if(!db)return;
-    try{await db.doc("claims/"+item.id).delete();refocus(item.id)}
-    catch(e){setSync("Couldn't undo that one. Try again in a moment.")}
-  }
-
-  function listen(){
-    var t=setTimeout(function(){setSync("Live marks are slow to load. The list still works.")},10000);
-    db.collection("claims").onSnapshot(function(snap){
-      if(!snap.metadata.fromCache){clearTimeout(t);if(mode==="live")setSync("")}
-      Object.keys(claims).forEach(function(k){delete claims[k]});
-      snap.docs.forEach(function(d){if(byId[d.id])claims[d.id]=d.data()});
-      applyAll();
-    },function(){
-      clearTimeout(t);mode="copy";applyAll();setSync(COPYMSG);
-    });
+    try{take(await send(item.id,"open",""));refocus(item.id)}
+    catch(e){setSync("Couldn't undo that just now. Try again in a moment.")}
   }
 
   applyAll();
-  (async function(){
-    var user=null;
-    try{if(window.claude&&claude.use){db=await claude.use("db");user=await claude.use("user")}}catch(e){db=null}
-    var canWrite=null;
-    try{if(user&&user.can)canWrite=await Promise.resolve(user.can("data.write"))}catch(e){}
-    if(!db||canWrite===false){mode="copy";setSync(COPYMSG)}
-    applyAll();
-    if(db)listen();
-  })();
+  if(!live){mode="copy";applyAll();setSync(COPYMSG)}
+  else{
+    refresh();
+    setInterval(function(){if(!document.hidden)refresh()},30000);
+    document.addEventListener("visibilitychange",function(){if(!document.hidden)refresh()});
+  }
 })();
 </script>
-
-</body></html>
+</body>
+</html>
