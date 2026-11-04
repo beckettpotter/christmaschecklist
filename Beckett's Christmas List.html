@@ -1,0 +1,273 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Beckett's Christmas List</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one narrow column, rows grouped by what goes together, status shown on each row.
+   Type: system sans for text, system mono for prices and labels (no font requests). */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --ink:#18201c; --muted:#5b6861;
+  --line:#dde2de; --line-strong:#b6c0b9;
+  --accent:#a8203f; --accent-ink:#ffffff;
+  --plan:#7a4f00; --plan-bg:#fbefd2; --plan-bar:#d9962b;
+  --done:#1b6841; --done-bg:#dcf1e4;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101513; --surface:#171d1a; --ink:#e7ece9; --muted:#9aa7a0;
+    --line:#28312c; --line-strong:#3e4943;
+    --accent:#ee6b87; --accent-ink:#1a0a0e;
+    --plan:#f0c46a; --plan-bg:#2f2610; --plan-bar:#c9942e;
+    --done:#7fd6a2; --done-bg:#12301f;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101513; --surface:#171d1a; --ink:#e7ece9; --muted:#9aa7a0;
+  --line:#28312c; --line-strong:#3e4943;
+  --accent:#ee6b87; --accent-ink:#1a0a0e;
+  --plan:#f0c46a; --plan-bg:#2f2610; --plan-bar:#c9942e;
+  --done:#7fd6a2; --done-bg:#12301f;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:46rem;margin:0 auto;padding-block:2rem 3rem;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.eyebrow{font:600 .75rem/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0}
+h1{font-size:clamp(2rem,7vw,2.9rem);line-height:1.05;letter-spacing:-.025em;font-weight:800;margin:.6rem 0 .8rem;text-wrap:balance}
+.lede{max-width:34rem;color:var(--muted);margin:0 0 1.5rem}
+.who{display:grid;gap:.35rem;margin-bottom:1.5rem}
+.who label{font-weight:600;font-size:.9rem}
+#who{font:inherit;min-height:2.5rem;padding:0 .75rem;border:1px solid var(--line-strong);border-radius:.5rem;background:var(--surface);color:var(--ink);width:100%;max-width:18rem}
+.hint{margin:0;font-size:.8rem;color:var(--muted)}
+.prog{display:grid;gap:.45rem}
+.track{display:flex;height:.5rem;border-radius:99px;background:var(--line);overflow:hidden}
+#fb{background:var(--done)} #fp{background:var(--plan-bar)}
+#count{margin:0;font:.78rem/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted)}
+.sync{margin:1rem 0 0;padding:.6rem .8rem;border:1px solid var(--line-strong);border-radius:.5rem;font-size:.85rem;color:var(--muted);background:var(--surface)}
+.group{margin-top:2.25rem}
+h2{margin:0;padding-bottom:.5rem;border-bottom:1px solid var(--line-strong);font:600 .75rem/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+ul{list-style:none;margin:0;padding:0}
+.row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.75rem 1rem;padding:1rem 0;border-bottom:1px solid var(--line)}
+.info{flex:1 1 15rem;min-width:0}
+.head{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem}
+.name{font-weight:700;font-size:1.05rem}
+.row[data-state="bought"] .name{color:var(--muted)}
+.pill{font:600 .7rem/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:.3rem .55rem;border-radius:99px;border:1px solid var(--line-strong);color:var(--muted);white-space:nowrap}
+.row[data-state="planning"] .pill{background:var(--plan-bg);color:var(--plan);border-color:transparent}
+.row[data-state="bought"] .pill{background:var(--done-bg);color:var(--done);border-color:transparent}
+.detail{margin:.15rem 0 0;color:var(--muted);font-size:.92rem}
+.meta{margin:.35rem 0 0;display:flex;flex-wrap:wrap;gap:.25rem 1rem;font-size:.88rem}
+.price{font:600 .88rem ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.meta a{color:var(--accent);font-weight:600}
+.nolink{color:var(--muted)}
+.by{margin:.35rem 0 0;font-size:.85rem;color:var(--muted)}
+.acts{display:flex;flex-wrap:wrap;gap:.5rem}
+.btn{font:inherit;font-weight:600;font-size:.9rem;min-height:2.5rem;padding:0 .9rem;border-radius:.5rem;border:1px solid var(--line-strong);background:transparent;color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{border-color:transparent;color:var(--muted);text-decoration:underline}
+.btn:focus-visible,#who:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+footer{margin-top:2.5rem;font-size:.8rem;color:var(--muted);max-width:34rem}
+footer p{margin:0 0 .4rem}
+#toast{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line-strong);box-shadow:0 -6px 20px rgba(0,0,0,.12);
+  padding-top:.9rem;padding-bottom:calc(.9rem + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.toast-in{max-width:46rem;margin:0 auto;display:grid;gap:.6rem}
+#tmsg{margin:0;font-size:.92rem}
+.trow{display:flex;flex-wrap:wrap;gap:.5rem}
+#tnote{flex:1 1 14rem;min-width:0;font:inherit;font-size:.9rem;min-height:2.5rem;padding:0 .75rem;border:1px solid var(--line-strong);border-radius:.5rem;background:var(--bg);color:var(--ink)}
+</style>
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow" id="cd">Christmas · Dec 25</p>
+    <h1>Beckett's Christmas List</h1>
+    <p class="lede">Pick something and mark it so nobody doubles up. Tap "I bought this" once it's ordered so I know it's handled.</p>
+    <div class="who">
+      <label for="who">Your name (optional)</label>
+      <input id="who" type="text" maxlength="24" autocomplete="off" placeholder="Leave blank to stay anonymous">
+      <p class="hint">Shown next to whatever you mark. Blank shows "someone".</p>
+    </div>
+    <div class="prog">
+      <div class="track" role="img" aria-label="Progress"><span id="fb"></span><span id="fp"></span></div>
+      <p id="count"></p>
+    </div>
+    <p class="sync" id="sync" hidden></p>
+  </header>
+  <div id="list"></div>
+  <footer>
+    <p>Marks are visible to everyone who opens this page. Product links go straight to the store.</p>
+    <p>This page loads no trackers, ads, analytics or outside fonts.</p>
+  </footer>
+</main>
+
+<div id="toast" role="status" aria-live="polite" hidden>
+  <div class="toast-in">
+    <p id="tmsg"></p>
+    <div class="trow">
+      <input id="tnote" type="text" readonly aria-label="Note to send">
+      <button class="btn primary" id="tcopy" type="button">Copy note</button>
+      <button class="btn ghost" id="tclose" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var ITEMS=[
+    {id:"ipad-mini",name:"iPad mini",detail:"Wi-Fi + Cellular, 256GB, standard glass, Midnight",price:"$949",url:"https://www.apple.com/shop/buy-ipad/ipad-mini/256gb-midnight-wifi-cellular-standard-glass"},
+    {id:"pencil-pro",name:"Apple Pencil Pro",price:"$129",url:"https://www.apple.com/shop/product/mx2d3am/a/apple-pencil-pro"},
+    {id:"ipad-folio",name:"iPad mini folio case",detail:"Black leather, with screen protectors",price:"$124.90",url:"https://dbrand.com/shop/folio-grip/ipad-mini-8-cases?addons=ipad-mini-prism&design=rl-blk"},
+    {id:"phone-protectors",name:"Phone screen protectors",detail:"New set",price:"$29.95"},
+    {id:"phone-skin",name:"dbrand phone skin",detail:"Teardown or leather, either one",price:"$20–30"},
+    {id:"spotify",name:"Spotify Premium",detail:"Another year"},
+    {id:"rotring",name:"rOtring 600 pencil",detail:"Mechanical pencil",price:"$10",url:"https://www.rotring.com/pens-pencils/mechanical-pencils/rotring-600-mechanical-pencil/SAP_1904445.html"},
+    {id:"power-bank",name:"Power bank",detail:"Anker",price:"$119",url:"https://www.amazon.com/Anker-Laptop-000mAh-Travel-Essential/dp/B0DMDJBCDP/"}
+  ];
+  var GROUPS=[
+    {t:"iPad mini",ids:["ipad-mini","pencil-pro","ipad-folio"]},
+    {t:"Phone",ids:["phone-protectors","phone-skin"]},
+    {t:"Everything else",ids:["spotify","rotring","power-bank"]}
+  ];
+  var byId={},rows={},claims={},db=null,mode="live";
+  ITEMS.forEach(function(i){byId[i.id]=i});
+  function $(s){return document.querySelector(s)}
+  function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+
+  /* remembered name (per viewer, optional) */
+  var who=$("#who");
+  try{who.value=localStorage.getItem("xmas-name")||""}catch(e){}
+  who.addEventListener("input",function(){try{localStorage.setItem("xmas-name",who.value.trim().slice(0,24))}catch(e){}});
+  function myName(){return who.value.trim().slice(0,24)}
+
+  /* countdown */
+  (function(){
+    var n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),x=new Date(n.getFullYear(),11,25);
+    var d=Math.round((x-t0)/864e5);
+    if(d>1)$("#cd").textContent="Christmas · "+d+" days to go";
+    else if(d===1)$("#cd").textContent="Christmas · tomorrow";
+    else if(d===0)$("#cd").textContent="Christmas · today";
+  })();
+
+  /* rows */
+  function host(u){try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return "link"}}
+  var list=$("#list");
+  GROUPS.forEach(function(g){
+    var sec=el("section","group"),ul=el("ul");
+    sec.append(el("h2",null,g.t),ul);
+    g.ids.forEach(function(id){
+      var i=byId[id],li=el("li","row"),info=el("div","info"),head=el("div","head"),pill=el("span","pill");
+      head.append(el("span","name",i.name),pill);info.append(head);
+      if(i.detail)info.append(el("p","detail",i.detail));
+      var meta=el("p","meta");
+      if(i.price)meta.append(el("span","price",i.price));
+      if(i.url){var a=el("a",null,host(i.url)+" ↗");a.href=i.url;a.target="_blank";a.rel="noopener noreferrer";a.setAttribute("aria-label","View "+i.name+" at "+host(i.url));meta.append(a)}
+      else meta.append(el("span","nolink","No link"));
+      info.append(meta);
+      var by=el("p","by");info.append(by);
+      var acts=el("div","acts"),plan=el("button","btn","I'll get this"),bought=el("button","btn primary","I bought this"),undo=el("button","btn ghost","Undo");
+      [plan,bought,undo].forEach(function(b){b.type="button"});
+      plan.setAttribute("aria-label","I'll get this: "+i.name);
+      bought.setAttribute("aria-label","I bought this: "+i.name);
+      undo.setAttribute("aria-label","Undo mark on "+i.name);
+      plan.onclick=function(){act(i,"planning")};
+      bought.onclick=function(){act(i,"bought")};
+      undo.onclick=function(){unmark(i)};
+      acts.append(plan,bought,undo);
+      li.append(info,acts);ul.append(li);
+      rows[id]={li:li,pill:pill,by:by,plan:plan,bought:bought,undo:undo};
+    });
+    list.append(sec);
+  });
+
+  function apply(id){
+    var r=rows[id],c=claims[id],s=(c&&c.state)||"open";
+    r.li.dataset.state=s;
+    r.pill.textContent=s==="bought"?"✓ Bought":s==="planning"?"◐ Getting it":"○ Open";
+    var w=c&&typeof c.who==="string"&&c.who?c.who:"someone";
+    r.by.textContent=c?(s==="bought"?"Bought by ":"Being bought by ")+w:"";
+    r.by.hidden=!c;
+    r.plan.hidden=s!=="open";
+    r.bought.hidden=s==="bought";
+    r.undo.hidden=s==="open"||mode==="copy";
+  }
+  function applyAll(){ITEMS.forEach(function(i){apply(i.id)});count()}
+  function count(){
+    var n=0,b=0;
+    ITEMS.forEach(function(i){var s=claims[i.id]&&claims[i.id].state;if(s)n++;if(s==="bought")b++});
+    $("#count").textContent=n+" of "+ITEMS.length+" spoken for · "+b+" bought";
+    $("#fb").style.width=(b/ITEMS.length*100)+"%";
+    $("#fp").style.width=((n-b)/ITEMS.length*100)+"%";
+  }
+  function setSync(msg){var s=$("#sync");if(msg){s.textContent=msg;s.hidden=false}else s.hidden=true}
+  var COPYMSG="Live marking isn't available in this view. The buttons copy a note you can send to Beckett.";
+
+  /* note sheet */
+  function share(msg,note,copyNow){
+    $("#tmsg").textContent=msg;$("#tnote").value=note;$("#tcopy").textContent="Copy note";$("#toast").hidden=false;
+    if(copyNow)doCopy();
+  }
+  function doCopy(){
+    var inp=$("#tnote"),b=$("#tcopy");
+    function sel(){inp.focus();inp.select();b.textContent="Selected, copy it"}
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(inp.value).then(function(){b.textContent="Copied"},sel);
+      }else sel();
+    }catch(e){sel()}
+  }
+  $("#tcopy").onclick=doCopy;
+  $("#tclose").onclick=function(){$("#toast").hidden=true};
+
+  function refocus(id){setTimeout(function(){
+    var r=rows[id];if(!r)return;
+    var a=document.activeElement;
+    if(!a||a===document.body||a.hidden){var b=[r.bought,r.plan,r.undo].filter(function(x){return !x.hidden})[0];if(b)b.focus()}
+  },60)}
+
+  async function act(item,state){
+    var n=myName();
+    var note="Christmas list update: "+(state==="bought"?"I bought":"I'm getting")+' "'+item.name+'".'+(n?" ("+n+")":"");
+    if(mode==="copy"||!db){share("Send this note to Beckett so he knows.",note,true);return}
+    try{
+      await db.doc("claims/"+item.id).set({state:state,who:n,at:new Date().toISOString()});
+      share("Saved. Beckett can see it on this page. A quick note to him helps too.",note,false);
+      refocus(item.id);
+    }catch(e){
+      mode="copy";applyAll();setSync(COPYMSG);
+      share("Live marking is off for this view. Send this note to Beckett so he knows.",note,true);
+    }
+  }
+  async function unmark(item){
+    if(!db)return;
+    try{await db.doc("claims/"+item.id).delete();refocus(item.id)}
+    catch(e){setSync("Couldn't undo that one. Try again in a moment.")}
+  }
+
+  function listen(){
+    var t=setTimeout(function(){setSync("Live marks are slow to load. The list still works.")},10000);
+    db.collection("claims").onSnapshot(function(snap){
+      if(!snap.metadata.fromCache){clearTimeout(t);if(mode==="live")setSync("")}
+      Object.keys(claims).forEach(function(k){delete claims[k]});
+      snap.docs.forEach(function(d){if(byId[d.id])claims[d.id]=d.data()});
+      applyAll();
+    },function(){
+      clearTimeout(t);mode="copy";applyAll();setSync(COPYMSG);
+    });
+  }
+
+  applyAll();
+  (async function(){
+    var user=null;
+    try{if(window.claude&&claude.use){db=await claude.use("db");user=await claude.use("user")}}catch(e){db=null}
+    var canWrite=null;
+    try{if(user&&user.can)canWrite=await Promise.resolve(user.can("data.write"))}catch(e){}
+    if(!db||canWrite===false){mode="copy";setSync(COPYMSG)}
+    applyAll();
+    if(db)listen();
+  })();
+})();
+</script>
+
+</body></html>
